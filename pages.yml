@@ -1,0 +1,30 @@
+# Optional and manual (Actions tab -> Run workflow). Only use it if Settings -> Pages -> Source is "GitHub Actions".
+# Simplest alternative: Settings -> Pages -> Deploy from a branch -> main / (root).
+# (Enable: repo Settings -> Pages -> Source: GitHub Actions. Set api/base in config.js first.)
+name: Deploy to GitHub Pages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.d.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Only the static files
+        run: |
+          mkdir _site
+          cp public/index.html public/404.html public/config.js public/.nojekyll _site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: d
+        uses: actions/deploy-pages@v4
